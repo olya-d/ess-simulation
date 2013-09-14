@@ -82,6 +82,7 @@ class Animal(object):
         self.territory = territory
         self.x = 0
         self.y = 0
+        self.strategy = 0
 
     def move(self, speed):
         """
@@ -108,7 +109,8 @@ class Population(object):
     where population lives.
     """
 
-    def __init__(self, size, life_span=50, number_of_children=2, density=0.4):
+    def __init__(self, game, size, life_span=50, number_of_children=2, density=0.4):
+        self.game = game
         self.size = size
         self.life_span = life_span
         self.number_of_children = number_of_children
@@ -124,6 +126,15 @@ class Population(object):
         Generate population
         """
         self.animals = [Animal(self.territory) for i in xrange(self.size)]
+
+        number_of_strategy0 = int(self.size*self.game.percentages[0])
+        number_of_strategy1 = self.size - number_of_strategy0
+        strategies = [0 for i in xrange(number_of_strategy0)]
+        strategies += [1 for i in xrange(number_of_strategy1)]
+        random.shuffle(strategies)
+        for i in xrange(self.size):
+            self.animals[i].strategy = strategies[i]
+
         self.territory.populate(self.animals, self.density)
 
     def show(self):
@@ -142,11 +153,68 @@ class Population(object):
         [animal.move(speed) for animal in self.animals]
 
 
-def run_simulation(times=100, size=20, density=1):
-    population = Population(200, density=1)
+class Strategy(object):
+    """
+    Represent line of the behaviour for agents
+    identifier (string) - name of the strategy
+    """
+    def __init__(self, identifier):
+        self.identifier = identifier
+
+
+class Hawk(Strategy):
+    """
+    Hawk behaviour
+    """
+    def __int__(self):
+        super(Hawk, self).__init__("Hawk")
+
+
+class Pigeon(Strategy):
+    """
+    Pigeon behaviour
+    """
+    def __int__(self):
+        super(Pigeon, self).__init__("Pigeon")
+
+
+class Game(object):
+    """
+    Represents the table of outcomes:
+    __________| Strategy0 | Strategy1
+    Strategy0 |    5, 10  |   -5, -5
+    Strategy1 |   -5, -5  |   0, 0
+    For this table, parameters should be:
+    strategies = [strategy0_identifier, strategy1_identifier]
+    outcomes = [[(5, 10), (-5, -5)], [(-5, -5), (0, 0)]]
+
+    percentages - percentage of population, following this strategy
+    """
+    def __init__(self, outcomes, percentages=[0.5, 0.5]):
+        self.outcomes = outcomes
+        self.percentages = percentages
+
+    def outcome(self, strategy0, strategy1):
+        """
+        strategy1, strategy2 - integers
+        outcome(0, 1) >> (-5, -5) # The first value for the first strategy
+        """
+        # strategy1_number = self.strategies.find(strategy1)
+        # strategy2_number = self.strategies.find(strategy2)
+        # if strategy1_number < 0 or strategy2_number < 0:
+        #     raise AttributeError("Some of the strategies don't belong to this game.")
+        return self.outcomes[strategy0][strategy1]
+
+
+def run_simulation(game, times=100, size=20, density=1):
+    population = Population(game, 200, density=1)
     population.generate()
     population.show()
 
 
 if __name__ == '__main__':
-    run_simulation()
+    # _______|     Hawk   | Pigeon
+    # Hawk   |  -40, -40  |  -30, 50
+    # Pigeon |   50, -30  |  -5, -5
+    game = Game([[(-40, -40), (-30, 50)], [(50, -30), (-5, -5)]])
+    run_simulation(game)

@@ -6,6 +6,7 @@ TOP_MARGIN = 10
 RIGHT_MARGIN = 10
 BOTTOM_MARGIN = 30
 LEFT_MARGIN = RIGHT_MARGIN
+STRATEGY_COLORS = ['#0B62A4', '#FF9F01', '#0000ff']
 
 CONTROLS_WIDTH = 100
 SPACE_BETWEEN_CONTROLS = 20
@@ -75,10 +76,10 @@ class PopulationVisualizerFrame(wx.Frame):
     def drawAnimals(self, dc):
         dc.Clear()
         self.drawTerritory(dc)
-        dc.SetBrush(wx.Brush(AGENT_BASE_COLOR))
         for animal in self.population.animals:
             x_start = LEFT_MARGIN + animal.x*CELL_WIDTH
             y_start = TOP_MARGIN + animal.y*CELL_HEIGHT
+            dc.SetBrush(wx.Brush(STRATEGY_COLORS[animal.strategy]))
             dc.DrawCircle(x_start, y_start, AGENT_RADIUS)
 
     def drawTerritory(self, dc):
