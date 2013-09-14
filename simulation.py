@@ -1,6 +1,6 @@
 import random
-
 import visualize
+import math
 
 
 def greatest_pair_of_factors(n):
@@ -36,6 +36,9 @@ class Territory(object):
         self.height = height
         self.map = [[[] for i in xrange(width)] for j in xrange(height)]
 
+    def is_point_inside(self, x, y):
+        return 0 < x < self.width and 0 < y < self.height
+
     def is_cell_occupied(self, i, j):
         return self.map[i][j] is []
 
@@ -47,12 +50,10 @@ class Territory(object):
         j = x
         i = int(round(y) - 0.5)
         self.map[i][j].append(agent)
-        # agent.x = x + random.random()
-        # agent.y = y + random.random()
         agent.x = j + random.random()
         agent.y = i + random.random()
 
-    def get_agent_in_cell(self, i, j):
+    def get_agents_in_cell(self, i, j):
         return self.map[i][j]
 
     def populate(self, agents, density):
@@ -81,6 +82,20 @@ class Animal(object):
         self.territory = territory
         self.x = 0
         self.y = 0
+
+    def move(self, speed):
+        """
+        Moves in random direction with speed
+        """
+        angle = random.random()*360
+        dx = speed*math.cos(angle*math.pi/180)
+        dy = speed*math.sin(angle*math.pi/180)
+        new_x = self.x + dx
+        new_y = self.y + dy
+        if self.territory.is_point_inside(new_x, new_y):
+            self.x, self.y = new_x, new_y
+        else:
+            self.move(speed)
 
 
 class Population(object):
@@ -112,8 +127,8 @@ class Population(object):
     def show(self):
         # for row in self.territory.map:
         #     print(row)
-        vis = visualize.PopulationVisualizer(self)
-        vis.show()
+        self.visualisation = visualize.PopulationVisualizer(self)
+        self.visualisation.show()
 
     def get_map(self):
         """
@@ -121,8 +136,15 @@ class Population(object):
         """
         return self.territory.map
 
+    def simulate_one_unit_of_time(self, speed):
+        [animal.move(speed) for animal in self.animals]
 
-if __name__ == '__main__':
+
+def run_simulation(times=100, size=20, density=1):
     population = Population(20, density=0.5)
     population.generate()
     population.show()
+
+
+if __name__ == '__main__':
+    run_simulation()
