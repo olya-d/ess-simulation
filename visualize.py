@@ -8,6 +8,7 @@ BOTTOM_MARGIN = 30
 LEFT_MARGIN = RIGHT_MARGIN
 
 CONTROLS_WIDTH = 100
+SPACE_BETWEEN_CONTROLS = 20
 
 AGENT_RADIUS = 5
 AGENT_BASE_COLOR = '#000000'
@@ -26,21 +27,34 @@ class PopulationVisualizer():
 
 
 class PopulationVisualizerFrame(wx.Frame):
-    def __init__(self, parent, title, population, size=(800, 600)):
-        self.populationSize = size
-        self.size = (size[0] + CONTROLS_WIDTH, size[1])
-        super(PopulationVisualizerFrame, self).__init__(parent, title=title, size=self.size)
+    def __init__(self, parent, title, population, simulationSize=(800, 600)):
+        size = (simulationSize[0] + CONTROLS_WIDTH, simulationSize[1])
+        super(PopulationVisualizerFrame, self).__init__(parent, title=title, size=size)
+        self.simulationSize = simulationSize
         self.population = population
         self.InitUI()
         self.Show(True)
 
     def InitUI(self):
         self.panel = wx.Panel(self)
-        simulateButton = wx.Button(self.panel, label='Simulate', pos=(self.size[0] - CONTROLS_WIDTH, 10))
+        w, h = self.GetClientSize()
+
+        simulateButton = wx.Button(self.panel, label='Simulate', pos=(w - CONTROLS_WIDTH, TOP_MARGIN))
         self.Bind(wx.EVT_BUTTON, self.draw, simulateButton)
-        stopButton = wx.Button(self.panel, label='Stop', pos=(self.size[0] - CONTROLS_WIDTH, 40))
+
+        stopButton = wx.Button(self.panel, label='Stop',
+                               pos=(w - CONTROLS_WIDTH, wx.Button_GetDefaultSize()[1] + SPACE_BETWEEN_CONTROLS))
         self.Bind(wx.EVT_BUTTON, self.stop, stopButton)
-        self.buffer = wx.EmptyBitmap(self.populationSize[0], self.populationSize[1])
+
+        # Label for text box
+        pos = (w - CONTROLS_WIDTH, wx.Button_GetDefaultSize()[1]*2 + SPACE_BETWEEN_CONTROLS*2)
+        size = (CONTROLS_WIDTH, wx.Button_GetDefaultSize()[1])
+        speedTextLabel = wx.StaticText(self.panel, label='Speed', pos=pos, size=size)
+        # Text box for speed of movement
+        pos = (w - CONTROLS_WIDTH, wx.Button_GetDefaultSize()[1]*3 + SPACE_BETWEEN_CONTROLS*2)
+        size = (wx.Button_GetDefaultSize()[0], wx.Button_GetDefaultSize()[1])
+        self.speedTextCtrl = wx.TextCtrl(self.panel, -1, '0.2', pos=pos, size=size)
+        self.buffer = wx.EmptyBitmap(self.simulationSize[0], self.simulationSize[1])
 
     def draw(self, e):
         self.timer = wx.Timer(self)
@@ -51,7 +65,7 @@ class PopulationVisualizerFrame(wx.Frame):
 
     def update(self, event):
         if self.timer.IsRunning():
-            self.population.simulate_one_unit_of_time(0.2)
+            self.population.simulate_one_unit_of_time(float(self.speedTextCtrl.GetValue()))
             dc = wx.BufferedDC(wx.ClientDC(self.panel), self.buffer)
             self.drawAnimals(dc)
 
@@ -66,8 +80,8 @@ class PopulationVisualizerFrame(wx.Frame):
 
     def drawTerritory(self, dc):
         dc.SetBrush(wx.Brush(TERRITORY_BORDER_COLOR))
-        rect_size = (self.populationSize[0] - RIGHT_MARGIN - LEFT_MARGIN,
-                     self.populationSize[1] - BOTTOM_MARGIN - TOP_MARGIN)
+        rect_size = (self.simulationSize[0] - RIGHT_MARGIN - LEFT_MARGIN,
+                     self.simulationSize[1] - BOTTOM_MARGIN - TOP_MARGIN)
         dc.DrawRectangle(RIGHT_MARGIN, TOP_MARGIN, rect_size[0], rect_size[1])
 
         # for i in range(LEFT_MARGIN + CELL_WIDTH, self.populationSize[0] - LEFT_MARGIN, CELL_WIDTH):

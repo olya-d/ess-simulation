@@ -87,6 +87,8 @@ class Animal(object):
         """
         Moves in random direction with speed
         """
+        if speed > self.territory.width and speed > self.territory.height:
+            return
         angle = random.random()*360
         dx = speed*math.cos(angle*math.pi/180)
         dy = speed*math.sin(angle*math.pi/180)
@@ -141,7 +143,7 @@ class Population(object):
 
 
 def run_simulation(times=100, size=20, density=1):
-    population = Population(20, density=0.5)
+    population = Population(200, density=1)
     population.generate()
     population.show()
 
