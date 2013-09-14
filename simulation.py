@@ -16,7 +16,7 @@ def greatest_pair_of_factors(n):
     factor = 1
     while factor * factor <= n:
         if n % factor == 0:
-            pairs.append((factor, n / factor))
+            pairs.append((n / factor, factor))
         factor += 1
     greatest = pairs[0]
     for pair in pairs:
