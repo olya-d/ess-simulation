@@ -39,12 +39,13 @@ class PopulationVisualizerFrame(wx.Frame):
         self.panel = wx.Panel(self)
         w, h = self.GetClientSize()
 
-        simulateButton = wx.Button(self.panel, label='Simulate', pos=(w - CONTROLS_WIDTH, TOP_MARGIN))
-        self.Bind(wx.EVT_BUTTON, self.draw, simulateButton)
+        self.simulateButton = wx.Button(self.panel, label='Simulate', pos=(w - CONTROLS_WIDTH, TOP_MARGIN))
+        self.Bind(wx.EVT_BUTTON, self.draw, self.simulateButton)
 
-        stopButton = wx.Button(self.panel, label='Stop',
+        self.stopButton = wx.Button(self.panel, label='Stop',
                                pos=(w - CONTROLS_WIDTH, wx.Button_GetDefaultSize()[1] + SPACE_BETWEEN_CONTROLS))
-        self.Bind(wx.EVT_BUTTON, self.stop, stopButton)
+        self.Bind(wx.EVT_BUTTON, self.stop, self.stopButton)
+        self.stopButton.Disable()
 
         # Label for text box
         pos = (w - CONTROLS_WIDTH, wx.Button_GetDefaultSize()[1]*2 + SPACE_BETWEEN_CONTROLS*2)
@@ -57,6 +58,8 @@ class PopulationVisualizerFrame(wx.Frame):
         self.buffer = wx.EmptyBitmap(self.simulationSize[0], self.simulationSize[1])
 
     def draw(self, e):
+        self.simulateButton.Disable()
+        self.stopButton.Enable()
         self.timer = wx.Timer(self)
         self.timer.Start(1000)
         self.Bind(wx.EVT_TIMER, self.update, self.timer)
@@ -93,3 +96,5 @@ class PopulationVisualizerFrame(wx.Frame):
     def stop(self, event):
         if not self.timer is None and self.timer.IsRunning():
             self.timer.Stop()
+        self.simulateButton.Enable()
+        self.stopButton.Disable()
