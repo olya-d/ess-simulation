@@ -41,6 +41,8 @@ class PopulationVisualizerFrame(wx.Frame):
         self.panel = wx.Panel(self)
         w, h = self.GetClientSize()
 
+        self.SetMenuBar(wx.MenuBar())
+
         self.simulateButton = wx.Button(self.panel, label='Simulate', pos=(w - CONTROLS_WIDTH, TOP_MARGIN))
         self.Bind(wx.EVT_BUTTON, self.draw, self.simulateButton)
 
@@ -52,7 +54,7 @@ class PopulationVisualizerFrame(wx.Frame):
         # Label for text box
         pos = (w - CONTROLS_WIDTH, wx.Button_GetDefaultSize()[1]*2 + SPACE_BETWEEN_CONTROLS*2)
         size = (CONTROLS_WIDTH, wx.Button_GetDefaultSize()[1])
-        speedTextLabel = wx.StaticText(self.panel, label='Speed', pos=pos, size=size)
+        wx.StaticText(self.panel, label='Speed', pos=pos, size=size)
         # Text box for speed of movement
         pos = (w - CONTROLS_WIDTH, wx.Button_GetDefaultSize()[1]*3 + SPACE_BETWEEN_CONTROLS*2)
         size = (wx.Button_GetDefaultSize()[0], wx.Button_GetDefaultSize()[1])
