@@ -2,6 +2,10 @@ import random
 import visualize
 import math
 
+LENGTH_OF_INTERACTION = 5
+LENGTH_OF_REST = 10
+DISTANCE_OF_INTERACTION = 0.1
+
 
 def greatest_pair_of_factors(n):
     """
@@ -25,6 +29,22 @@ def greatest_pair_of_factors(n):
     return greatest
 
 
+def distance(coord1, coord2):
+    """
+    Return distance between points (x1, y1) and (x2, y2)
+    """
+    return math.sqrt((coord1[0] - coord2[0])**2 + (coord2[1] - coord1[1])**2)
+
+
+def calculate_new_point_in_random_direction(coord, speed):
+    """
+    Returns new point (x, y)
+    """
+    angle = random.randrange(360)
+    return (speed*math.cos(math.radians(angle)) + coord[0],
+            speed*math.sin(math.radians(angle)) + coord[1])
+
+
 class Territory(object):
     """
     Represents a territory, where animals live.
@@ -34,27 +54,19 @@ class Territory(object):
     def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.map = [[[] for i in xrange(width)] for j in xrange(height)]
+        self.agents = []
 
-    def is_point_inside(self, x, y):
-        return 0 < x < self.width and 0 < y < self.height
-
-    def is_cell_occupied(self, i, j):
-        return self.map[i][j] is []
+    def is_point_inside(self, coord):
+        return 0 < coord[0] < self.width and 0 < coord[1] < self.height
 
     def occupy_cell(self, x, y, agent):
         """
-        Occupies one cell for the map (integer)
-        Records (x, y) for animal (float)
+        Records (x, y) for animal
         """
-        j = x
-        i = int(round(y) - 0.5)
-        self.map[i][j].append(agent)
-        agent.x = j + random.random()
-        agent.y = i + random.random()
-
-    def get_agents_in_cell(self, i, j):
-        return self.map[i][j]
+        y = int(round(y) - 0.5)
+        agent.x = x + random.random()
+        agent.y = y + random.random()
+        self.agents.append(agent)
 
     def populate(self, agents, density):
         """
@@ -71,6 +83,21 @@ class Territory(object):
                 y += for_one_agent
             x += 1
 
+    def agent_for_interaction(self, agent):
+        """
+        Returns agent, that is close enough and the closest to begin interaction
+        """
+        closest_distance = DISTANCE_OF_INTERACTION
+        closest = None
+        for another_agent in self.agents:
+            if another_agent == agent:
+                continue
+            dist = distance((agent.x, agent.y), (another_agent.x, another_agent.y))
+            if dist < closest_distance:
+                closest = another_agent
+                closest_distance = dist
+        return closest
+
 
 class Animal(object):
     """
@@ -83,23 +110,65 @@ class Animal(object):
         self.x = 0
         self.y = 0
         self.strategy = 0
+        self.interacting_with = None
+        self.interaction_time_left = 0
+        self.unavailable_for = 0
+        self.moved = False
 
-    def move(self, speed):
+    def live_one_unit_of_time(self, speed):
         """
-        Moves in random direction with speed
+        Moves if can, interacts if can
         """
+        # Can be already moved if some animal has started interaction with this animal
+        if self.moved:
+            return
+
+        self.moved = True
+
+        # Unavailable for some time after interaction
+        if self.unavailable_for > 0:
+            self.unavailable_for -= 1
+            self.move(speed)
+            return
+
+        if self.interacting_with is not None:
+            # If still in interaction
+            if self.interaction_time_left > 0:
+                self.interaction_time_left -= 1
+                return
+            else:
+                self.stop_interaction()
+
         if speed > self.territory.width and speed > self.territory.height:
             return
-        angle = random.random()*360
-        dx = speed*math.cos(angle*math.pi/180)
-        dy = speed*math.sin(angle*math.pi/180)
-        new_x = self.x + dx
-        new_y = self.y + dy
-        if self.territory.is_point_inside(new_x, new_y):
-            self.x, self.y = new_x, new_y
-        else:
-            self.move(speed)
 
+        self.move(speed)
+        self.interact_with(self.territory.agent_for_interaction(self))
+
+    def move(self, speed):
+        # Find new place
+        new_coord = calculate_new_point_in_random_direction((self.x, self.y), speed)
+        while not self.territory.is_point_inside(new_coord):
+            new_coord = calculate_new_point_in_random_direction((self.x, self.y), speed)
+        self.x, self.y = new_coord
+
+    def interact_with(self, animal):
+        if animal is not None and animal.able_to_interact() and self.able_to_interact():
+            self.interaction_time_left = LENGTH_OF_INTERACTION
+            animal.interaction_time_left = LENGTH_OF_INTERACTION
+            animal.interacting_with = self
+            animal.moved = True
+            self.interacting_with = animal
+
+    def stop_interaction(self):
+        animal = self.interacting_with
+        animal.interacting_with = None
+        animal.unavailable_for = LENGTH_OF_REST
+        self.interacting_with = None
+        self.unavailable_for = LENGTH_OF_REST
+
+    def able_to_interact(self):
+        return self.unavailable_for == 0 and self.interacting_with is None
 
 class Population(object):
     """
@@ -143,14 +212,10 @@ class Population(object):
         self.visualisation = visualize.PopulationVisualizer(self)
         self.visualisation.show()
 
-    def get_map(self):
-        """
-        Return map of the territory
-        """
-        return self.territory.map
-
     def simulate_one_unit_of_time(self, speed):
-        [animal.move(speed) for animal in self.animals]
+        [animal.live_one_unit_of_time(speed) for animal in self.animals]
+        for animal in self.animals:
+            animal.moved = False
 
 
 class Strategy(object):
@@ -190,24 +255,16 @@ class Game(object):
 
     percentages - percentage of population, following this strategy
     """
-    def __init__(self, outcomes, percentages=[0.5, 0.5]):
+    def __init__(self, outcomes, percentages=(0.5, 0.5)):
         self.outcomes = outcomes
         self.percentages = percentages
 
     def outcome(self, strategy0, strategy1):
-        """
-        strategy1, strategy2 - integers
-        outcome(0, 1) >> (-5, -5) # The first value for the first strategy
-        """
-        # strategy1_number = self.strategies.find(strategy1)
-        # strategy2_number = self.strategies.find(strategy2)
-        # if strategy1_number < 0 or strategy2_number < 0:
-        #     raise AttributeError("Some of the strategies don't belong to this game.")
         return self.outcomes[strategy0][strategy1]
 
 
 def run_simulation(game, times=100, size=20, density=1):
-    population = Population(game, 200, density=1)
+    population = Population(game, 100, density=1)
     population.generate()
     population.show()
 

@@ -6,7 +6,6 @@ TOP_MARGIN = 10
 RIGHT_MARGIN = 10
 BOTTOM_MARGIN = 30
 LEFT_MARGIN = RIGHT_MARGIN
-STRATEGY_COLORS = ['#0B62A4', '#FF9F01', '#0000ff']
 
 CONTROLS_WIDTH = 100
 SPACE_BETWEEN_CONTROLS = 20
@@ -14,6 +13,8 @@ SPACE_BETWEEN_CONTROLS = 20
 AGENT_RADIUS = 5
 AGENT_BASE_COLOR = '#000000'
 TERRITORY_BORDER_COLOR = '#eeeeee'
+STRATEGY_COLORS = ['#0B62A4', '#FF9F01', '#0000ff']
+INTERACTION_COLOR = '#ffffff'
 
 
 class PopulationVisualizer():
@@ -62,7 +63,7 @@ class PopulationVisualizerFrame(wx.Frame):
         self.simulateButton.Disable()
         self.stopButton.Enable()
         self.timer = wx.Timer(self)
-        self.timer.Start(1000)
+        self.timer.Start(500)
         self.Bind(wx.EVT_TIMER, self.update, self.timer)
         dc = wx.BufferedDC(wx.ClientDC(self.panel), self.buffer)
         self.drawAnimals(dc)
@@ -79,7 +80,10 @@ class PopulationVisualizerFrame(wx.Frame):
         for animal in self.population.animals:
             x_start = LEFT_MARGIN + animal.x*CELL_WIDTH
             y_start = TOP_MARGIN + animal.y*CELL_HEIGHT
-            dc.SetBrush(wx.Brush(STRATEGY_COLORS[animal.strategy]))
+            if animal.interacting_with is None:
+                dc.SetBrush(wx.Brush(STRATEGY_COLORS[animal.strategy]))
+            else:
+                dc.SetBrush(wx.Brush(INTERACTION_COLOR))
             dc.DrawCircle(x_start, y_start, AGENT_RADIUS)
 
     def drawTerritory(self, dc):
@@ -88,11 +92,6 @@ class PopulationVisualizerFrame(wx.Frame):
                      self.simulationSize[1] - BOTTOM_MARGIN - TOP_MARGIN)
         dc.DrawRectangle(RIGHT_MARGIN, TOP_MARGIN, rect_size[0], rect_size[1])
 
-        # for i in range(LEFT_MARGIN + CELL_WIDTH, self.populationSize[0] - LEFT_MARGIN, CELL_WIDTH):
-        #     dc.DrawLine(i, TOP_MARGIN, i, TOP_MARGIN + rect_size[1])
-        #
-        # for i in range(TOP_MARGIN + CELL_HEIGHT, self.populationSize[1] - BOTTOM_MARGIN, CELL_HEIGHT):
-        #     dc.DrawLine(LEFT_MARGIN, i, LEFT_MARGIN + rect_size[0], i)
 
     def stop(self, event):
         if not self.timer is None and self.timer.IsRunning():
