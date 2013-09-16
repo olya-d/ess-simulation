@@ -105,8 +105,9 @@ class Animal(object):
     Basic class for different behaviours
     """
 
-    def __init__(self, territory):
+    def __init__(self, population, territory):
         self.territory = territory
+        self.population = population
         self.x = 0
         self.y = 0
         self.strategy = 0
@@ -114,6 +115,7 @@ class Animal(object):
         self.interaction_time_left = 0
         self.unavailable_for = 0
         self.moved = False
+        self.score = 0
 
     def live_one_unit_of_time(self, speed):
         """
@@ -159,6 +161,9 @@ class Animal(object):
             animal.interacting_with = self
             animal.moved = True
             self.interacting_with = animal
+            outcome = self.population.game.outcome(self.strategy, animal.strategy)
+            self.score += outcome[0]
+            animal.score += outcome[1]
 
     def stop_interaction(self):
         animal = self.interacting_with
@@ -169,6 +174,7 @@ class Animal(object):
 
     def able_to_interact(self):
         return self.unavailable_for == 0 and self.interacting_with is None
+
 
 class Population(object):
     """
@@ -194,7 +200,7 @@ class Population(object):
         """
         Generate population
         """
-        self.animals = [Animal(self.territory) for i in xrange(self.size)]
+        self.animals = [Animal(self, self.territory) for i in xrange(self.size)]
 
         number_of_strategy0 = int(self.size*self.game.percentages[0])
         number_of_strategy1 = self.size - number_of_strategy0
@@ -264,7 +270,7 @@ class Game(object):
 
 
 def run_simulation(game, times=100, size=20, density=1):
-    population = Population(game, 100, density=1)
+    population = Population(game, 2, density=1)
     population.generate()
     population.show()
 
@@ -273,5 +279,5 @@ if __name__ == '__main__':
     # _______|     Hawk   | Pigeon
     # Hawk   |  -40, -40  |  -30, 50
     # Pigeon |   50, -30  |  -5, -5
-    game = Game([[(-40, -40), (-30, 50)], [(50, -30), (-5, -5)]])
+    game = Game([[(-8, -8), (-6, 10)], [(10, -6), (-1, -1)]])
     run_simulation(game)

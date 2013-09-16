@@ -10,7 +10,7 @@ LEFT_MARGIN = RIGHT_MARGIN
 CONTROLS_WIDTH = 100
 SPACE_BETWEEN_CONTROLS = 20
 
-AGENT_RADIUS = 5
+AGENT_RADIUS = 10
 AGENT_BASE_COLOR = '#000000'
 TERRITORY_BORDER_COLOR = '#eeeeee'
 STRATEGY_COLORS = ['#0B62A4', '#FF9F01', '#0000ff']
@@ -87,13 +87,17 @@ class PopulationVisualizerFrame(wx.Frame):
             else:
                 dc.SetBrush(wx.Brush(INTERACTION_COLOR))
             dc.DrawCircle(x_start, y_start, AGENT_RADIUS)
+            score = str(animal.score)
+            tw, th = dc.GetTextExtent(score)
+            # dc.SetFont(wx.wxFont(12, wxMODERN, wxNORMAL, wxNORMAL))
+            dc.SetFont(wx.Font(12, wx.MODERN, wx.NORMAL, wx.NORMAL))
+            dc.DrawText(score, x_start - tw/2, y_start - th/2)
 
     def drawTerritory(self, dc):
         dc.SetBrush(wx.Brush(TERRITORY_BORDER_COLOR))
         rect_size = (self.simulationSize[0] - RIGHT_MARGIN - LEFT_MARGIN,
                      self.simulationSize[1] - BOTTOM_MARGIN - TOP_MARGIN)
         dc.DrawRectangle(RIGHT_MARGIN, TOP_MARGIN, rect_size[0], rect_size[1])
-
 
     def stop(self, event):
         if not self.timer is None and self.timer.IsRunning():
