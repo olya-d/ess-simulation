@@ -1,48 +1,12 @@
 import random
 import visualize
-import math
+import support
+
 
 LENGTH_OF_INTERACTION = 5
 LENGTH_OF_REST = 10
 DISTANCE_OF_INTERACTION = 0.1
-
-
-def greatest_pair_of_factors(n):
-    """
-    Finds pair of integers (a, b) such as a*b = n and
-    there is no such (c, d) that c*d=n and |c-d| < |a-b|.
-    It basically finds the closest integer representation of square root.
-    Examples:
-    greatest_pair_of_factors(5) >> (1, 5)
-    greatest_pair_of_factors(20) >> (4, 5)
-    """
-    pairs = []
-    factor = 1
-    while factor * factor <= n:
-        if n % factor == 0:
-            pairs.append((n / factor, factor))
-        factor += 1
-    greatest = pairs[0]
-    for pair in pairs:
-        if abs(pair[0] - pair[1]) < abs(greatest[0] - greatest[1]):
-            greatest = pair
-    return greatest
-
-
-def distance(coord1, coord2):
-    """
-    Return distance between points (x1, y1) and (x2, y2)
-    """
-    return math.sqrt((coord1[0] - coord2[0])**2 + (coord2[1] - coord1[1])**2)
-
-
-def calculate_new_point_in_random_direction(coord, speed):
-    """
-    Returns new point (x, y)
-    """
-    angle = random.randrange(360)
-    return (speed*math.cos(math.radians(angle)) + coord[0],
-            speed*math.sin(math.radians(angle)) + coord[1])
+PROBABILITY_OF_MUTATION = 0.2
 
 
 class Territory(object):
@@ -73,6 +37,7 @@ class Territory(object):
         Populates the territory with agents with population density.
         It calculates the square, in which one agent lives.
         """
+        self.agents = []
         agents = agents[:]
         for_one_agent = 1.0 / density
         x = 0
@@ -92,12 +57,14 @@ class Territory(object):
         for another_agent in self.agents:
             if another_agent == agent:
                 continue
-            dist = distance((agent.x, agent.y), (another_agent.x, another_agent.y))
+            dist = support.distance((agent.x, agent.y), (another_agent.x, another_agent.y))
             if dist < closest_distance:
                 closest = another_agent
                 closest_distance = dist
         return closest
 
+    def update(self, agents):
+        self.agents = agents
 
 class Animal(object):
     """
@@ -105,12 +72,12 @@ class Animal(object):
     Basic class for different behaviours
     """
 
-    def __init__(self, population, territory):
+    def __init__(self, population, territory, strategy=0):
         self.territory = territory
         self.population = population
         self.x = 0
         self.y = 0
-        self.strategy = 0
+        self.strategy = strategy
         self.interacting_with = None
         self.interaction_time_left = 0
         self.unavailable_for = 0
@@ -149,9 +116,9 @@ class Animal(object):
 
     def move(self, speed):
         # Find new place
-        new_coord = calculate_new_point_in_random_direction((self.x, self.y), speed)
+        new_coord = support.calculate_new_point_in_random_direction((self.x, self.y), speed)
         while not self.territory.is_point_inside(new_coord):
-            new_coord = calculate_new_point_in_random_direction((self.x, self.y), speed)
+            new_coord = support.calculate_new_point_in_random_direction((self.x, self.y), speed)
         self.x, self.y = new_coord
 
     def interact_with(self, animal):
@@ -175,6 +142,20 @@ class Animal(object):
     def able_to_interact(self):
         return self.unavailable_for == 0 and self.interacting_with is None
 
+    def reproduce(self, number_of_children):
+        children = []
+        for i in xrange(number_of_children):
+            mutation_takes_place = random.random() < PROBABILITY_OF_MUTATION
+            if mutation_takes_place:
+                child_strategy = 1 - self.strategy
+            else:
+                child_strategy = self.strategy
+            child = Animal(self.population, self.territory, child_strategy)
+            child.x = self.x + random.random()*0.2
+            child.y = self.y + random.random()*0.2
+            children.append(child)
+        return children
+
 
 class Population(object):
     """
@@ -184,16 +165,17 @@ class Population(object):
     where population lives.
     """
 
-    def __init__(self, game, size, life_span=50, number_of_children=2, density=0.4):
+    def __init__(self, game, size, life_span=20, number_of_children=2, density=0.4):
         self.game = game
         self.size = size
         self.life_span = life_span
         self.number_of_children = number_of_children
         self.density = density
+        self.years_to_live = life_span
         self.animals = []
         # Territory
         number_of_cells = int(size / density)
-        dimensions = greatest_pair_of_factors(number_of_cells)
+        dimensions = support.greatest_pair_of_factors(number_of_cells)
         self.territory = Territory(dimensions[0], dimensions[1])
 
     def generate(self):
@@ -211,6 +193,8 @@ class Population(object):
             self.animals[i].strategy = strategies[i]
 
         self.territory.populate(self.animals, self.density)
+        # So animals won't be sorted by coordinates
+        random.shuffle(self.animals)
 
     def show(self):
         # for row in self.territory.map:
@@ -222,6 +206,21 @@ class Population(object):
         [animal.live_one_unit_of_time(speed) for animal in self.animals]
         for animal in self.animals:
             animal.moved = False
+        self.years_to_live -= 1
+        if self.years_to_live == 0:
+            self.reproduce()
+
+    def reproduce(self):
+        sorted_by_score = sorted(self.animals, key=lambda x: x.score, reverse=True)
+        new_generation = []
+        for i in xrange(int(self.size*0.25)):
+            new_generation += sorted_by_score[i].reproduce(number_of_children=2)
+        for i in xrange(int(self.size*0.25), int(self.size*0.75)):
+            new_generation += sorted_by_score[i].reproduce(number_of_children=1)
+        self.animals = new_generation
+        random.shuffle(self.animals)
+        self.territory.update(self.animals)
+        self.years_to_live = self.life_span
 
 
 class Strategy(object):
@@ -270,7 +269,7 @@ class Game(object):
 
 
 def run_simulation(game, times=100, size=20, density=1):
-    population = Population(game, 2, density=1)
+    population = Population(game, 100, density=1)
     population.generate()
     population.show()
 
@@ -280,4 +279,4 @@ if __name__ == '__main__':
     # Hawk   |  -40, -40  |  -30, 50
     # Pigeon |   50, -30  |  -5, -5
     game = Game([[(-8, -8), (-6, 10)], [(10, -6), (-1, -1)]])
-    run_simulation(game)
+    run_simulation(game, times=10)
