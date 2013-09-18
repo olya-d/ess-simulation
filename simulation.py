@@ -165,11 +165,10 @@ class Population(object):
     where population lives.
     """
 
-    def __init__(self, game, size, life_span=20, number_of_children=2, density=0.4):
+    def __init__(self, game, size, life_span, density):
         self.game = game
         self.size = size
         self.life_span = life_span
-        self.number_of_children = number_of_children
         self.density = density
         self.years_to_live = life_span
         self.animals = []
@@ -199,7 +198,7 @@ class Population(object):
     def show(self):
         # for row in self.territory.map:
         #     print(row)
-        self.visualisation = visualize.PopulationVisualizer(self)
+        self.visualisation = visualize.PopulationVisualizer()
         self.visualisation.show()
 
     def simulate_one_unit_of_time(self, speed):
@@ -268,15 +267,17 @@ class Game(object):
         return self.outcomes[strategy0][strategy1]
 
 
-def run_simulation(game, times=100, size=20, density=1):
-    population = Population(game, 100, density=1)
-    population.generate()
-    population.show()
-
-
+# def run_simulation(game, times=100, size=20, density=1):
+#     population = Population(game, 100, density=1)
+#     population.generate()
+#     population.show()
+#
+#
 if __name__ == '__main__':
     # _______|     Hawk   | Pigeon
     # Hawk   |  -40, -40  |  -30, 50
     # Pigeon |   50, -30  |  -5, -5
-    game = Game([[(-8, -8), (-6, 10)], [(10, -6), (-1, -1)]])
-    run_simulation(game, times=10)
+    # game = Game([[(-8, -8), (-6, 10)], [(10, -6), (-1, -1)]])
+    # run_simulation(game, times=10)
+    visualizer = visualize.PopulationVisualizer()
+    visualizer.show()
