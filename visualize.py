@@ -145,7 +145,8 @@ class SettingsFrame(wx.Frame):
                 outcome = [int(x) for x in value.strip().split(',')]
                 row.append(tuple(outcome))
             values.append(row)
-        return simulation.Game(values)
+        names = [self.gameGrid.GetColLabelValue(0), self.gameGrid.GetColLabelValue(1)]
+        return simulation.Game(values, names=names)
 
 
 class PopulationVisualizerFrame(wx.Frame):
@@ -213,7 +214,8 @@ class PopulationVisualizerFrame(wx.Frame):
             dc.DrawText(score, x_start - tw/2, y_start - th/2)
             if animal.strategy == 0:
                 countStrategy0 += 1
-        statusText = "Strategy 1 : Strategy 2 = %d : %d" % (countStrategy0, (self.population.size - countStrategy0))
+        statusText = "%s : %s = %d : %d" % (self.population.game.names[0], self.population.game.names[1],
+                                            countStrategy0, (self.population.size - countStrategy0))
         self.statusBar.SetStatusText(statusText)
 
     def drawTerritory(self, dc):

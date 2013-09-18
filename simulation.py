@@ -259,8 +259,9 @@ class Game(object):
 
     percentages - percentage of population, following this strategy
     """
-    def __init__(self, outcomes, percentages=(0.5, 0.5)):
+    def __init__(self, outcomes, names=['Strategy 1', 'Strategy 2'], percentages=(0.5, 0.5)):
         self.outcomes = outcomes
+        self.names = names
         self.percentages = percentages
 
     def outcome(self, strategy0, strategy1):
