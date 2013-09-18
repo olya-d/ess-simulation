@@ -118,7 +118,7 @@ class SettingsFrame(wx.Frame):
         self.Bind(wx.EVT_TEXT, self.changeStrategy2Name, self.tc_strategy2)
 
     def openSimulation(self, event):
-        game = simulation.Game([[(-8, -8), (-6, 10)], [(10, -6), (-1, -1)]])
+        game = self.createGame()
         size = int(self.tc_size.GetValue())
         life_span = int(self.tc_lifeSpan.GetValue())
         density = float(self.tc_density.GetValue())
@@ -135,6 +135,17 @@ class SettingsFrame(wx.Frame):
         newName = self.tc_strategy2.GetValue()
         self.gameGrid.SetColLabelValue(1, newName)
         self.gameGrid.SetRowLabelValue(1, newName)
+
+    def createGame(self):
+        values = []
+        for i in range(2):
+            row = []
+            for j in range(2):
+                value = self.gameGrid.GetCellValue(i, j)
+                outcome = [int(x) for x in value.strip().split(',')]
+                row.append(tuple(outcome))
+            values.append(row)
+        return simulation.Game(values)
 
 
 class PopulationVisualizerFrame(wx.Frame):
