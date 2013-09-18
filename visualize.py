@@ -87,7 +87,7 @@ class SettingsFrame(wx.Frame):
         h_sizer.Add(st_strategy2, flag=wx.RIGHT, border=8)
         h_sizer.Add(self.tc_strategy2, proportion=1)
         v_sizer.Add(h_sizer, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, border=10)
-        # Data grid
+        ## Data grid
         h_sizer = wx.BoxSizer(wx.HORIZONTAL)
         st_game = wx.StaticText(panel, label='Game:')
         h_sizer.Add(st_game, flag=wx.RIGHT, border=8)
@@ -102,6 +102,14 @@ class SettingsFrame(wx.Frame):
         self.gameGrid.SetRowLabelValue(0, "Hawk")
         self.gameGrid.SetRowLabelValue(1, "Pigeon")
         h_sizer.Add(self.gameGrid, proportion=1)
+        v_sizer.Add(h_sizer, flag=wx.LEFT | wx.RIGHT | wx.TOP, border=10)
+        ## Percentage
+        v_sizer.Add((-1, 15))
+        h_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        st_percentage = wx.StaticText(panel, label='Strategy#1 percentage:')
+        self.tc_percentage = wx.TextCtrl(panel, -1, '50')
+        h_sizer.Add(st_percentage, flag=wx.RIGHT, border=8)
+        h_sizer.Add(self.tc_percentage, proportion=1)
         v_sizer.Add(h_sizer, flag=wx.LEFT | wx.RIGHT | wx.TOP, border=10)
 
         # Simulate button
@@ -146,7 +154,8 @@ class SettingsFrame(wx.Frame):
                 row.append(tuple(outcome))
             values.append(row)
         names = [self.gameGrid.GetColLabelValue(0), self.gameGrid.GetColLabelValue(1)]
-        return simulation.Game(values, names=names)
+        percentages = (float(self.tc_percentage.GetValue())/100, 100 - float(self.tc_percentage.GetValue())/100)
+        return simulation.Game(values, names=names, percentages=percentages)
 
 
 class PopulationVisualizerFrame(wx.Frame):
