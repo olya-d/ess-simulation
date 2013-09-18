@@ -220,32 +220,7 @@ class Population(object):
         random.shuffle(self.animals)
         self.territory.update(self.animals)
         self.years_to_live = self.life_span
-
-
-class Strategy(object):
-    """
-    Represent line of the behaviour for agents
-    identifier (string) - name of the strategy
-    """
-    def __init__(self, identifier):
-        self.identifier = identifier
-
-
-class Hawk(Strategy):
-    """
-    Hawk behaviour
-    """
-    def __int__(self):
-        super(Hawk, self).__init__("Hawk")
-
-
-class Pigeon(Strategy):
-    """
-    Pigeon behaviour
-    """
-    def __int__(self):
-        super(Pigeon, self).__init__("Pigeon")
-
+        
 
 class Game(object):
     """
