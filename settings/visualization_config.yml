@@ -1,11 +1,8 @@
 territory:
   cell_width: 50
   cell_height: 50
-  top_margin: 10
-  right_margin: 10
-  bottom_margin: 50
-  left_margin: 10
   border_color: '#eeeeee'
+  margin: 10
 agents:
   radius: 10
   base_color: '#000000'
@@ -14,4 +11,3 @@ agents:
     - '#ff9f01'
     - '#0000ff'
   interaction_color: '#ffffff'
-controls_width: 100

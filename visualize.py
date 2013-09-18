@@ -148,29 +148,28 @@ class SettingsFrame(wx.Frame):
 class PopulationVisualizerFrame(wx.Frame):
     def __init__(self, parent, title, population, speed):
         self.population = population
-        simulationSize = self.calculatePixelSizeForPopulation()
-        size = (simulationSize[0] + settings['controls_width'], simulationSize[1])
+        self.simulationSize = self.calculatePixelSizeForPopulation()
+        size = (self.simulationSize[0] + settings['territory']['margin']*2,
+                self.simulationSize[1] + settings['territory']['margin']*2 + 50)
+        print(wx.ToolBar_GetClassDefaultAttributes())
         super(PopulationVisualizerFrame, self).__init__(parent, title=title, size=size)
-        self.simulationSize = simulationSize
         self.speed = speed
         self.InitUI()
         self.Show(True)
 
     def InitUI(self):
         self.panel = wx.Panel(self)
-        w, h = self.GetClientSize()
 
         self.SetMenuBar(wx.MenuBar())
 
-        self.continueButton = wx.Button(self.panel, label='Continue',
-                                        pos=(w - settings['controls_width'], settings['territory']['top_margin']))
-        self.Bind(wx.EVT_BUTTON, self.draw, self.continueButton)
+        toolbar = self.CreateToolBar()
+        self.continueTool = toolbar.AddLabelTool(wx.ID_ANY, 'Continue', wx.Bitmap('continue.png'))
+        self.pauseTool = toolbar.AddLabelTool(wx.ID_ANY, 'Pause', wx.Bitmap('pause.png'))
+        toolbar.Realize()
+        self.Bind(wx.EVT_TOOL, self.pause, self.pauseTool)
+        self.Bind(wx.EVT_TOOL, self.draw, self.continueTool)
 
-        self.stopButton = wx.Button(self.panel, label='Stop',
-                                    pos=(w - settings['controls_width'], wx.Button_GetDefaultSize()[1] + 10))
-        self.Bind(wx.EVT_BUTTON, self.stop, self.stopButton)
-
-        self.buffer = wx.EmptyBitmap(self.simulationSize[0], self.simulationSize[1])
+        self.buffer = wx.EmptyBitmap(self.simulationSize[0] + 20, self.simulationSize[1] + 20)
 
         # Population statistics
         self.statusBar = self.CreateStatusBar()
@@ -178,8 +177,8 @@ class PopulationVisualizerFrame(wx.Frame):
         self.draw(None)
 
     def draw(self, event):
-        self.continueButton.Disable()
-        self.stopButton.Enable()
+        self.continueTool.Enable(False)
+        self.pauseTool.Enable(True)
         self.timer = wx.Timer(self)
         self.timer.Start(500)
         self.Bind(wx.EVT_TIMER, self.update, self.timer)
@@ -197,8 +196,8 @@ class PopulationVisualizerFrame(wx.Frame):
         self.drawTerritory(dc)
         countStrategy0 = 0
         for animal in self.population.animals:
-            x_start = settings['territory']['left_margin'] + animal.x*settings['territory']['cell_width']
-            y_start = settings['territory']['top_margin'] + animal.y*settings['territory']['cell_height']
+            x_start = settings['territory']['margin'] + animal.x*settings['territory']['cell_width']
+            y_start = settings['territory']['margin'] + animal.y*settings['territory']['cell_height']
             if animal.interacting_with is None:
                 dc.SetBrush(wx.Brush(settings['agents']['strategy_colors'][animal.strategy]))
             else:
@@ -216,19 +215,16 @@ class PopulationVisualizerFrame(wx.Frame):
 
     def drawTerritory(self, dc):
         dc.SetBrush(wx.Brush(settings['territory']['border_color']))
-        rect_size = (self.simulationSize[0] - settings['territory']['right_margin'] - settings['territory']['left_margin'],
-                     self.simulationSize[1] - settings['territory']['bottom_margin'] - settings['territory']['top_margin'])
-        dc.DrawRectangle(settings['territory']['right_margin'], settings['territory']['top_margin'], rect_size[0], rect_size[1])
+        rect_size = self.simulationSize
+        dc.DrawRectangle(settings['territory']['margin'], settings['territory']['margin'], rect_size[0], rect_size[1])
 
-    def stop(self, event):
+    def pause(self, event):
         if not self.timer is None and self.timer.IsRunning():
             self.timer.Stop()
-        self.continueButton.Enable()
-        self.stopButton.Disable()
+        self.continueTool.Enable(True)
+        self.pauseTool.Enable(False)
 
     def calculatePixelSizeForPopulation(self):
         width = self.population.territory.width*settings['territory']['cell_width']
-        width += settings['territory']['left_margin'] + settings['territory']['right_margin']
         height = self.population.territory.width*settings['territory']['cell_height']
-        height += settings['territory']['top_margin'] + settings['territory']['bottom_margin']
         return width, height
