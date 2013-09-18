@@ -1,0 +1,17 @@
+territory:
+  cell_width: 50
+  cell_height: 50
+  top_margin: 10
+  right_margin: 10
+  bottom_margin: 50
+  left_margin: 10
+  border_color: '#eeeeee'
+agents:
+  radius: 10
+  base_color: '#000000'
+  strategy_colors:
+    - '#0b62a4'
+    - '#ff9f01'
+    - '#0000ff'
+  interaction_color: '#ffffff'
+controls_width: 100

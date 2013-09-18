@@ -1,12 +1,10 @@
 import random
 import visualize
 import support
+import yaml
 
 
-LENGTH_OF_INTERACTION = 5
-LENGTH_OF_REST = 10
-DISTANCE_OF_INTERACTION = 0.1
-PROBABILITY_OF_MUTATION = 0.2
+settings = yaml.load(file('settings/simulation_config.yml', 'r'))
 
 
 class Territory(object):
@@ -52,7 +50,7 @@ class Territory(object):
         """
         Returns agent, that is close enough and the closest to begin interaction
         """
-        closest_distance = DISTANCE_OF_INTERACTION
+        closest_distance = settings['distance_of_interaction']
         closest = None
         for another_agent in self.agents:
             if another_agent == agent:
@@ -65,6 +63,7 @@ class Territory(object):
 
     def update(self, agents):
         self.agents = agents
+
 
 class Animal(object):
     """
@@ -123,8 +122,8 @@ class Animal(object):
 
     def interact_with(self, animal):
         if animal is not None and animal.able_to_interact() and self.able_to_interact():
-            self.interaction_time_left = LENGTH_OF_INTERACTION
-            animal.interaction_time_left = LENGTH_OF_INTERACTION
+            self.interaction_time_left = settings['length_of_interaction']
+            animal.interaction_time_left = settings['length_of_interaction']
             animal.interacting_with = self
             animal.moved = True
             self.interacting_with = animal
@@ -135,9 +134,9 @@ class Animal(object):
     def stop_interaction(self):
         animal = self.interacting_with
         animal.interacting_with = None
-        animal.unavailable_for = LENGTH_OF_REST
+        animal.unavailable_for = settings['length_of_rest']
         self.interacting_with = None
-        self.unavailable_for = LENGTH_OF_REST
+        self.unavailable_for = settings['length_of_rest']
 
     def able_to_interact(self):
         return self.unavailable_for == 0 and self.interacting_with is None
@@ -145,7 +144,7 @@ class Animal(object):
     def reproduce(self, number_of_children):
         children = []
         for i in xrange(number_of_children):
-            mutation_takes_place = random.random() < PROBABILITY_OF_MUTATION
+            mutation_takes_place = random.random() < settings['probability_of_mutation']
             if mutation_takes_place:
                 child_strategy = 1 - self.strategy
             else:
@@ -220,7 +219,7 @@ class Population(object):
         random.shuffle(self.animals)
         self.territory.update(self.animals)
         self.years_to_live = self.life_span
-        
+
 
 class Game(object):
     """
@@ -249,6 +248,8 @@ class Game(object):
 #     population.show()
 #
 #
+
+
 if __name__ == '__main__':
     # _______|     Hawk   | Pigeon
     # Hawk   |  -40, -40  |  -30, 50
