@@ -4,7 +4,7 @@ CELL_WIDTH = 50
 CELL_HEIGHT = 50
 TOP_MARGIN = 10
 RIGHT_MARGIN = 10
-BOTTOM_MARGIN = 30
+BOTTOM_MARGIN = 50
 LEFT_MARGIN = RIGHT_MARGIN
 
 CONTROLS_WIDTH = 100
@@ -61,6 +61,9 @@ class PopulationVisualizerFrame(wx.Frame):
         self.speedTextCtrl = wx.TextCtrl(self.panel, -1, '0.2', pos=pos, size=size)
         self.buffer = wx.EmptyBitmap(self.simulationSize[0], self.simulationSize[1])
 
+        # Population statistics
+        self.statusBar = self.CreateStatusBar()
+
     def draw(self, e):
         self.simulateButton.Disable()
         self.stopButton.Enable()
@@ -79,6 +82,7 @@ class PopulationVisualizerFrame(wx.Frame):
     def drawAnimals(self, dc):
         dc.Clear()
         self.drawTerritory(dc)
+        countStrategy0 = 0
         for animal in self.population.animals:
             x_start = LEFT_MARGIN + animal.x*CELL_WIDTH
             y_start = TOP_MARGIN + animal.y*CELL_HEIGHT
@@ -92,6 +96,11 @@ class PopulationVisualizerFrame(wx.Frame):
             # dc.SetFont(wx.wxFont(12, wxMODERN, wxNORMAL, wxNORMAL))
             dc.SetFont(wx.Font(12, wx.MODERN, wx.NORMAL, wx.NORMAL))
             dc.DrawText(score, x_start - tw/2, y_start - th/2)
+            if animal.strategy == 0:
+                countStrategy0 += 1
+        statusText = "Strategy 1 : Strategy 2 = %d : %d" % (countStrategy0, (self.population.size - countStrategy0))
+        self.statusBar.SetStatusText(statusText)
+
 
     def drawTerritory(self, dc):
         dc.SetBrush(wx.Brush(TERRITORY_BORDER_COLOR))
