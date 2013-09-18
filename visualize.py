@@ -1,4 +1,5 @@
 import wx
+import wx.grid as gridlib
 import simulation
 
 CELL_WIDTH = 50
@@ -31,7 +32,7 @@ class SettingsFrame(wx.Frame):
 
     def __init__(self):
         self.title = 'Settings | ESS'
-        wx.Frame.__init__(self, wx.GetApp().TopWindow, title=self.title, size=(400, 300))
+        wx.Frame.__init__(self, wx.GetApp().TopWindow, title=self.title, size=(400, 400))
         self.InitUI()
         self.Show()
 
@@ -40,47 +41,81 @@ class SettingsFrame(wx.Frame):
         v_sizer = wx.BoxSizer(wx.VERTICAL)
 
         # Speed
-        h_sizer1 = wx.BoxSizer(wx.HORIZONTAL)
+        h_sizer = wx.BoxSizer(wx.HORIZONTAL)
         st_speed = wx.StaticText(panel, label='Speed of movement:')
         self.tc_speed = wx.TextCtrl(panel, -1, "0.2")
-        h_sizer1.Add(st_speed, flag=wx.RIGHT, border=8)
-        h_sizer1.Add(self.tc_speed, proportion=1)
-        v_sizer.Add(h_sizer1, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, border=10)
+        h_sizer.Add(st_speed, flag=wx.RIGHT, border=8)
+        h_sizer.Add(self.tc_speed, proportion=1)
+        v_sizer.Add(h_sizer, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, border=10)
 
         # Size
-        h_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
+        h_sizer = wx.BoxSizer(wx.HORIZONTAL)
         st_size = wx.StaticText(panel, label='Size of population:')
         self.tc_size = wx.TextCtrl(panel, -1, "100")
-        h_sizer2.Add(st_size, flag=wx.RIGHT, border=8)
-        h_sizer2.Add(self.tc_size, proportion=1)
-        v_sizer.Add(h_sizer2, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, border=10)
+        h_sizer.Add(st_size, flag=wx.RIGHT, border=8)
+        h_sizer.Add(self.tc_size, proportion=1)
+        v_sizer.Add(h_sizer, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, border=10)
 
         # Density
-        h_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
+        h_sizer = wx.BoxSizer(wx.HORIZONTAL)
         st_density = wx.StaticText(panel, label='Density of population:')
         self.tc_density = wx.TextCtrl(panel, -1, "1")
-        h_sizer2.Add(st_density, flag=wx.RIGHT, border=8)
-        h_sizer2.Add(self.tc_density, proportion=1)
-        v_sizer.Add(h_sizer2, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, border=10)
+        h_sizer.Add(st_density, flag=wx.RIGHT, border=8)
+        h_sizer.Add(self.tc_density, proportion=1)
+        v_sizer.Add(h_sizer, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, border=10)
 
         # Life span
-        h_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
+        h_sizer = wx.BoxSizer(wx.HORIZONTAL)
         st_lifeSpan = wx.StaticText(panel, label='Life span:')
         self.tc_lifeSpan = wx.TextCtrl(panel, -1, "20")
-        h_sizer2.Add(st_lifeSpan, flag=wx.RIGHT, border=8)
-        h_sizer2.Add(self.tc_lifeSpan, proportion=1)
-        v_sizer.Add(h_sizer2, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, border=10)
+        h_sizer.Add(st_lifeSpan, flag=wx.RIGHT, border=8)
+        h_sizer.Add(self.tc_lifeSpan, proportion=1)
+        v_sizer.Add(h_sizer, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, border=10)
+
+        # Game
+        ## Strategy 1
+        h_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        st_strategy1 = wx.StaticText(panel, label='Name of strategy#1:')
+        self.tc_strategy1 = wx.TextCtrl(panel, -1, 'Hawk')
+        h_sizer.Add(st_strategy1, flag=wx.RIGHT, border=8)
+        h_sizer.Add(self.tc_strategy1, proportion=1)
+        v_sizer.Add(h_sizer, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, border=10)
+        ## Strategy 2
+        h_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        st_strategy2 = wx.StaticText(panel, label='Name of strategy#2:')
+        self.tc_strategy2 = wx.TextCtrl(panel, -1, 'Pigeon')
+        h_sizer.Add(st_strategy2, flag=wx.RIGHT, border=8)
+        h_sizer.Add(self.tc_strategy2, proportion=1)
+        v_sizer.Add(h_sizer, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, border=10)
+        # Data grid
+        h_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        st_game = wx.StaticText(panel, label='Game:')
+        h_sizer.Add(st_game, flag=wx.RIGHT, border=8)
+        self.gameGrid = gridlib.Grid(panel)
+        self.gameGrid.CreateGrid(2, 2)
+        self.gameGrid.SetCellValue(0, 0, "-8, -8")
+        self.gameGrid.SetCellValue(0, 1, "-6, 10")
+        self.gameGrid.SetCellValue(1, 0, "10, -6")
+        self.gameGrid.SetCellValue(1, 1, "-1, -1")
+        self.gameGrid.SetColLabelValue(0, "Hawk")
+        self.gameGrid.SetColLabelValue(1, "Pigeon")
+        self.gameGrid.SetRowLabelValue(0, "Hawk")
+        self.gameGrid.SetRowLabelValue(1, "Pigeon")
+        h_sizer.Add(self.gameGrid, proportion=1)
+        v_sizer.Add(h_sizer, flag=wx.LEFT | wx.RIGHT | wx.TOP, border=10)
 
         # Simulate button
         v_sizer.Add((-1, 25))
-        h_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
+        h_sizer = wx.BoxSizer(wx.HORIZONTAL)
         simulateButton = wx.Button(panel, label='Simulate')
-        h_sizer2.Add(simulateButton, flag=wx.LEFT | wx.BOTTOM, border=5)
-        v_sizer.Add(h_sizer2, flag=wx.ALIGN_CENTER | wx.RIGHT, border=10)
+        h_sizer.Add(simulateButton, flag=wx.LEFT | wx.BOTTOM, border=5)
+        v_sizer.Add(h_sizer, flag=wx.ALIGN_CENTER | wx.RIGHT, border=10)
 
         panel.SetSizer(v_sizer)
 
         self.Bind(wx.EVT_BUTTON, self.openSimulation, simulateButton)
+        self.Bind(wx.EVT_TEXT, self.changeStrategy1Name, self.tc_strategy1)
+        self.Bind(wx.EVT_TEXT, self.changeStrategy2Name, self.tc_strategy2)
 
     def openSimulation(self, event):
         game = simulation.Game([[(-8, -8), (-6, 10)], [(10, -6), (-1, -1)]])
@@ -90,6 +125,16 @@ class SettingsFrame(wx.Frame):
         self.population = simulation.Population(game, size, life_span=life_span, density=density)
         self.population.generate()
         PopulationVisualizerFrame(None, 'ESS', self.population, float(self.tc_speed.GetValue()))
+        
+    def changeStrategy1Name(self, event):
+        newName = self.tc_strategy1.GetValue()
+        self.gameGrid.SetColLabelValue(0, newName)
+        self.gameGrid.SetRowLabelValue(0, newName)
+
+    def changeStrategy2Name(self, event):
+        newName = self.tc_strategy2.GetValue()
+        self.gameGrid.SetColLabelValue(1, newName)
+        self.gameGrid.SetRowLabelValue(1, newName)
 
 
 class PopulationVisualizerFrame(wx.Frame):
