@@ -24,11 +24,13 @@ def greatest_pair_of_factors(n):
     return greatest
 
 
-def distance(coord1, coord2):
+def distance(x1, y1, x2, y2):
     """
-    Return distance between points (x1, y1) and (x2, y2)
+    Return distance^2 between points (x1, y1) and (x2, y2)
     """
-    return math.sqrt((coord1[0] - coord2[0])**2 + (coord2[1] - coord1[1])**2)
+    dx = x1 - x2
+    dy = y1 - y2
+    return dx*dx + dy*dy
 
 
 def calculate_new_point_in_random_direction(coord, speed):

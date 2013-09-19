@@ -17,6 +17,7 @@ class Territory(object):
         self.width = width
         self.height = height
         self.agents = []
+        self.distances = {}
 
     def is_point_inside(self, coord):
         return 0 < coord[0] < self.width and 0 < coord[1] < self.height
@@ -50,12 +51,12 @@ class Territory(object):
         """
         Returns agent, that is close enough and the closest to begin interaction
         """
-        closest_distance = settings['distance_of_interaction']**2
+        closest_distance = settings['distance_of_interaction_square']
         closest = None
         for another_agent in self.agents:
             if another_agent == agent:
                 continue
-            dist = support.distance((agent.x, agent.y), (another_agent.x, another_agent.y))
+            dist = support.distance(agent.x, agent.y, another_agent.x, another_agent.y)
             if dist < closest_distance:
                 closest = another_agent
                 closest_distance = dist

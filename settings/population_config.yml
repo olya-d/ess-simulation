@@ -1,4 +1,4 @@
 length_of_interaction: 5
 length_of_rest: 10
-distance_of_interaction: 0.1
+distance_of_interaction_square: 0.01
 probability_of_mutation: 0.2
