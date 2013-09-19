@@ -33,10 +33,9 @@ def distance(x1, y1, x2, y2):
     return dx*dx + dy*dy
 
 
-def calculate_new_point_in_random_direction(coord, speed):
+def calculate_new_point_in_random_direction(x, y, speed):
     """
     Returns new point (x, y)
     """
-    angle = random.randrange(360)
-    return (speed*math.cos(math.radians(angle)) + coord[0],
-            speed*math.sin(math.radians(angle)) + coord[1])
+    angle = random.random()*360
+    return speed*math.cos(math.radians(angle)) + x, speed*math.sin(math.radians(angle)) + y

@@ -1,4 +1,3 @@
-import cProfile
 import population
 import matplotlib.pyplot as plt
 
@@ -21,4 +20,3 @@ def run_simulation(population, speed=0.2, times=100):
 
 game = population.Game([[[-8, -8], [-6, 10]], [[10, 06], [-1, -1]]], names=('Hawk', 'Pigeon'), percentages=(0.9, 0.1))
 population = population.Population(game, 100, 20, 1)
-cProfile.run('run_simulation(population, times=10)')

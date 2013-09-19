@@ -116,9 +116,9 @@ class Animal(object):
 
     def move(self, speed):
         # Find new place
-        new_coord = support.calculate_new_point_in_random_direction((self.x, self.y), speed)
+        new_coord = support.calculate_new_point_in_random_direction(self.x, self.y, speed)
         while not self.territory.is_point_inside(new_coord):
-            new_coord = support.calculate_new_point_in_random_direction((self.x, self.y), speed)
+            new_coord = support.calculate_new_point_in_random_direction(self.x, self.y, speed)
         self.x, self.y = new_coord
 
     def interact_with(self, animal):
