@@ -127,7 +127,7 @@ class Animal(object):
             animal.interacting_with = self
             animal.moved = True
             self.interacting_with = animal
-            outcome = self.population.game.outcome(self.strategy, animal.strategy)
+            outcome = self.population.get_outcome(self.strategy, animal.strategy)
             self.score += outcome[0]
             animal.score += outcome[1]
 
@@ -195,8 +195,6 @@ class Population(object):
         random.shuffle(self.animals)
 
     def show(self):
-        # for row in self.territory.map:
-        #     print(row)
         self.visualisation = visualize.PopulationVisualizer()
         self.visualisation.show()
 
@@ -211,14 +209,24 @@ class Population(object):
     def reproduce(self):
         sorted_by_score = sorted(self.animals, key=lambda x: x.score, reverse=True)
         new_generation = []
-        for i in xrange(int(self.size*0.25)):
+        for i in range(int(self.size*0.25)):
             new_generation += sorted_by_score[i].reproduce(number_of_children=2)
-        for i in xrange(int(self.size*0.25), int(self.size*0.75)):
+        for i in range(int(self.size*0.25), int(self.size*0.75)):
             new_generation += sorted_by_score[i].reproduce(number_of_children=1)
         self.animals = new_generation
         random.shuffle(self.animals)
         self.territory.update(self.animals)
         self.years_to_live = self.life_span
+
+    def get_strategy_numbers(self):
+        strategy0 = sum(animal.strategy == 0 for animal in self.animals)
+        return strategy0, self.size - strategy0
+
+    def get_strategy_name(self, index):
+        return self.game.names[index]
+
+    def get_outcome(self, strategy0, strategy1):
+        return self.game.outcome(strategy0, strategy1)
 
 
 class Game(object):
@@ -233,7 +241,7 @@ class Game(object):
 
     percentages - percentage of population, following this strategy
     """
-    def __init__(self, outcomes, names=['Strategy 1', 'Strategy 2'], percentages=(0.5, 0.5)):
+    def __init__(self, outcomes, names=('Strategy 1', 'Strategy 2'), percentages=(0.5, 0.5)):
         self.outcomes = outcomes
         self.names = names
         self.percentages = percentages
@@ -242,19 +250,6 @@ class Game(object):
         return self.outcomes[strategy0][strategy1]
 
 
-# def run_simulation(game, times=100, size=20, density=1):
-#     population = Population(game, 100, density=1)
-#     population.generate()
-#     population.show()
-#
-#
-
-
 if __name__ == '__main__':
-    # _______|     Hawk   | Pigeon
-    # Hawk   |  -40, -40  |  -30, 50
-    # Pigeon |   50, -30  |  -5, -5
-    # game = Game([[(-8, -8), (-6, 10)], [(10, -6), (-1, -1)]])
-    # run_simulation(game, times=10)
     visualizer = visualize.PopulationVisualizer()
     visualizer.show()

@@ -1,5 +1,5 @@
 import wx
-import wx.grid as gridlib
+import wx.grid
 import simulation
 import yaml
 
@@ -78,16 +78,7 @@ class SettingsFrame(wx.Frame):
         h_sizer = wx.BoxSizer(wx.HORIZONTAL)
         st_game = wx.StaticText(panel, label='Game:')
         h_sizer.Add(st_game, flag=wx.RIGHT, border=8)
-        self.gameGrid = gridlib.Grid(panel)
-        self.gameGrid.CreateGrid(2, 2)
-        self.gameGrid.SetCellValue(0, 0, "-8, -8")
-        self.gameGrid.SetCellValue(0, 1, "-6, 10")
-        self.gameGrid.SetCellValue(1, 0, "10, -6")
-        self.gameGrid.SetCellValue(1, 1, "-1, -1")
-        self.gameGrid.SetColLabelValue(0, "Hawk")
-        self.gameGrid.SetColLabelValue(1, "Pigeon")
-        self.gameGrid.SetRowLabelValue(0, "Hawk")
-        self.gameGrid.SetRowLabelValue(1, "Pigeon")
+        self.initGrid(panel)
         h_sizer.Add(self.gameGrid, proportion=1)
         v_sizer.Add(h_sizer, flag=wx.LEFT | wx.RIGHT | wx.TOP, border=10)
         ## Percentage
@@ -111,6 +102,21 @@ class SettingsFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.openSimulation, simulateButton)
         self.Bind(wx.EVT_TEXT, self.changeStrategy1Name, self.tc_strategy1)
         self.Bind(wx.EVT_TEXT, self.changeStrategy2Name, self.tc_strategy2)
+
+    def initGrid(self, panel):
+        """
+        Creates grid and sets default values
+        """
+        self.gameGrid = wx.grid.Grid(panel)
+        self.gameGrid.CreateGrid(2, 2)
+        self.gameGrid.SetCellValue(0, 0, "-8, -8")
+        self.gameGrid.SetCellValue(0, 1, "-6, 10")
+        self.gameGrid.SetCellValue(1, 0, "10, -6")
+        self.gameGrid.SetCellValue(1, 1, "-1, -1")
+        self.gameGrid.SetColLabelValue(0, "Hawk")
+        self.gameGrid.SetColLabelValue(1, "Pigeon")
+        self.gameGrid.SetRowLabelValue(0, "Hawk")
+        self.gameGrid.SetRowLabelValue(1, "Pigeon")
 
     def openSimulation(self, event):
         game = self.createGame()
@@ -140,7 +146,7 @@ class SettingsFrame(wx.Frame):
                 outcome = [int(x) for x in value.strip().split(',')]
                 row.append(tuple(outcome))
             values.append(row)
-        names = [self.gameGrid.GetColLabelValue(0), self.gameGrid.GetColLabelValue(1)]
+        names = (self.gameGrid.GetColLabelValue(0), self.gameGrid.GetColLabelValue(1))
         percentages = (float(self.tc_percentage.GetValue())/100, 100 - float(self.tc_percentage.GetValue())/100)
         return simulation.Game(values, names=names, percentages=percentages)
 
@@ -151,15 +157,16 @@ class PopulationVisualizerFrame(wx.Frame):
         self.simulationSize = self.calculatePixelSizeForPopulation()
         size = (self.simulationSize[0] + settings['territory']['margin']*2,
                 self.simulationSize[1] + settings['territory']['margin']*2 + 50)
-        print(wx.ToolBar_GetClassDefaultAttributes())
         super(PopulationVisualizerFrame, self).__init__(parent, title=title, size=size)
         self.speed = speed
         self.InitUI()
         self.Show(True)
 
     def InitUI(self):
+        """
+        Initializes panel, menu bar, tool bar, buffer for bitmap, status bar
+        """
         self.panel = wx.Panel(self)
-
         self.SetMenuBar(wx.MenuBar())
 
         toolbar = self.CreateToolBar()
@@ -173,19 +180,26 @@ class PopulationVisualizerFrame(wx.Frame):
 
         # Population statistics
         self.statusBar = self.CreateStatusBar()
-
         self.draw(None)
 
     def draw(self, event):
+        """
+        Starts timer, creates new wx.BufferedDC
+        """
         self.continueTool.Enable(False)
         self.pauseTool.Enable(True)
+
         self.timer = wx.Timer(self)
         self.timer.Start(500)
         self.Bind(wx.EVT_TIMER, self.update, self.timer)
+
         dc = wx.BufferedDC(wx.ClientDC(self.panel), self.buffer)
         self.drawAnimals(dc)
 
     def update(self, event):
+        """
+        Runs on timer event
+        """
         if self.timer.IsRunning():
             self.population.simulate_one_unit_of_time(self.speed)
             dc = wx.BufferedDC(wx.ClientDC(self.panel), self.buffer)
@@ -193,25 +207,39 @@ class PopulationVisualizerFrame(wx.Frame):
 
     def drawAnimals(self, dc):
         dc.Clear()
+        dc.SetFont(wx.Font(12, wx.MODERN, wx.NORMAL, wx.NORMAL))
         self.drawTerritory(dc)
-        countStrategy0 = 0
         for animal in self.population.animals:
-            x_start = settings['territory']['margin'] + animal.x*settings['territory']['cell_width']
-            y_start = settings['territory']['margin'] + animal.y*settings['territory']['cell_height']
-            if animal.interacting_with is None:
-                dc.SetBrush(wx.Brush(settings['agents']['strategy_colors'][animal.strategy]))
-            else:
-                dc.SetBrush(wx.Brush(settings['agents']['interaction_color']))
-            dc.DrawCircle(x_start, y_start, settings['agents']['radius'])
-            score = str(animal.score)
-            tw, th = dc.GetTextExtent(score)
-            dc.SetFont(wx.Font(12, wx.MODERN, wx.NORMAL, wx.NORMAL))
-            dc.DrawText(score, x_start - tw/2, y_start - th/2)
-            if animal.strategy == 0:
-                countStrategy0 += 1
-        statusText = "%s : %s = %d : %d" % (self.population.game.names[0], self.population.game.names[1],
-                                            countStrategy0, (self.population.size - countStrategy0))
+            self.drawAnimal(animal, dc)
+
+        numbers = self.population.get_strategy_numbers()
+        statusText = "%s : %s = %d : %d" % (self.population.get_strategy_name(0), self.population.get_strategy_name(1),
+                                            numbers[0], numbers[1])
         self.statusBar.SetStatusText(statusText)
+
+    def drawAnimal(self, animal, dc):
+        """
+        Draws animal:
+        Circle of radius from config and color, according to the  strategy represents the animal.
+        Number inside the circle is the current score of the animal.
+        If animal is interacting with some other animal, the circle is in special color from config.
+        """
+        x, y = self.convertXtoPixels(animal.x), self.convertYToPixels(animal.y)
+        if animal.interacting_with is None:
+            dc.SetBrush(wx.Brush(settings['agents']['strategy_colors'][animal.strategy]))
+        else:
+            dc.SetBrush(wx.Brush(settings['agents']['interaction_color']))
+        dc.DrawCircle(x, y, settings['agents']['radius'])
+        score = str(animal.score)
+        # Width and height of future score label
+        tw, th = dc.GetTextExtent(score)
+        dc.DrawText(score, x - tw/2, y - th/2)
+
+    def convertXtoPixels(self, x):
+        return settings['territory']['margin'] + x*settings['territory']['cell_width']
+
+    def convertYToPixels(self, y):
+        return settings['territory']['margin'] + y*settings['territory']['cell_height']
 
     def drawTerritory(self, dc):
         dc.SetBrush(wx.Brush(settings['territory']['border_color']))

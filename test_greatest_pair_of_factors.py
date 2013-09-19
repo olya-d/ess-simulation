@@ -1,5 +1,5 @@
 from unittest import TestCase
-from simulation import greatest_pair_of_factors
+from support import greatest_pair_of_factors
 
 __author__ = 'olga_andreyeva'
 
