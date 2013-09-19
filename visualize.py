@@ -1,6 +1,6 @@
 import wx
 import wx.grid
-import simulation
+import population
 import yaml
 
 settings = yaml.load(file('settings/visualization_config.yml', 'r'))
@@ -123,7 +123,7 @@ class SettingsFrame(wx.Frame):
         size = int(self.tc_size.GetValue())
         life_span = int(self.tc_lifeSpan.GetValue())
         density = float(self.tc_density.GetValue())
-        self.population = simulation.Population(game, size, life_span=life_span, density=density)
+        self.population = population.Population(game, size, life_span=life_span, density=density)
         self.population.generate()
         PopulationVisualizerFrame(None, 'ESS', self.population, float(self.tc_speed.GetValue()))
         
@@ -148,7 +148,7 @@ class SettingsFrame(wx.Frame):
             values.append(row)
         names = (self.gameGrid.GetColLabelValue(0), self.gameGrid.GetColLabelValue(1))
         percentages = (float(self.tc_percentage.GetValue())/100, 100 - float(self.tc_percentage.GetValue())/100)
-        return simulation.Game(values, names=names, percentages=percentages)
+        return population.Game(values, names=names, percentages=percentages)
 
 
 class PopulationVisualizerFrame(wx.Frame):

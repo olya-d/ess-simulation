@@ -4,7 +4,7 @@ import support
 import yaml
 
 
-settings = yaml.load(file('settings/simulation_config.yml', 'r'))
+settings = yaml.load(file('settings/population_config.yml', 'r'))
 
 
 class Territory(object):
@@ -50,7 +50,7 @@ class Territory(object):
         """
         Returns agent, that is close enough and the closest to begin interaction
         """
-        closest_distance = settings['distance_of_interaction']
+        closest_distance = settings['distance_of_interaction']**2
         closest = None
         for another_agent in self.agents:
             if another_agent == agent:
